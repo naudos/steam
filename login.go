@@ -20,7 +20,7 @@ import (
 	"time"
 
 	"github.com/0xAozora/steam/pb"
-	"github.com/golang/protobuf/proto"
+	"google.golang.org/protobuf/proto"
 )
 
 type LoginFinalized struct {
@@ -97,8 +97,6 @@ func getRSAKey(accountName string) (*pb.CAuthentication_GetPasswordRSAPublicKey_
 	if b == nil {
 		return nil, err
 	}
-
-	//decodedBytes, _ := base64.StdEncoding.DecodeString(string(b))
 
 	var rsaKey pb.CAuthentication_GetPasswordRSAPublicKey_Response
 	_ = proto.Unmarshal(b, &rsaKey)
