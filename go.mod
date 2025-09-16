@@ -1,4 +1,4 @@
-module github.com/0xAozora/steam
+module github.com/naudos/steam
 
 go 1.23
 
