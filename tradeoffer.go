@@ -92,10 +92,18 @@ type EconAction struct {
 	Name string `json:"name"`
 }
 
+type ItemDescTradableOnly struct {
+	Tradable uint `json:"tradable"`
+}
+
+type ItemDescComodityOnly struct {
+	Comodity uint `json:"comodity"`
+}
+
 type EconItemDesc struct {
 	ClassID         uint64        `json:"classid,string"`    // for matching with EconItem
 	InstanceID      uint64        `json:"instanceid,string"` // for matching with EconItem
-	Tradable        bool          `json:"tradable"`
+	Tradable        bool          `json:"-"`
 	BackgroundColor string        `json:"background_color"`
 	IconURL         string        `json:"icon_url"`
 	IconLargeURL    string        `json:"icon_url_large"`
@@ -105,10 +113,54 @@ type EconItemDesc struct {
 	MarketName      string        `json:"market_name"`
 	MarketHashName  string        `json:"market_hash_name"`
 	MarketFeeApp    uint32        `json:"market_fee_app"`
-	Comodity        bool          `json:"comodity"`
+	Comodity        bool          `json:"-"`
 	Actions         []*EconAction `json:"actions"`
 	Tags            []*EconTag    `json:"tags"`
 	Descriptions    []*EconDesc   `json:"descriptions"`
+}
+
+func (e *EconItemDesc) UnmarshalJSON(bytes []byte) error {
+	var rawComodity ItemDescComodityOnly
+	err := json.Unmarshal(bytes, &rawComodity)
+	if err != nil {
+		return err
+	}
+
+	var comodity bool
+	if rawComodity.Comodity == 1 {
+		comodity = true
+	} else if rawComodity.Comodity == 0 {
+		comodity = false
+	} else {
+		return errors.New("invalid value from steam response")
+	}
+
+	var rawTradable ItemDescTradableOnly
+	errTradable := json.Unmarshal(bytes, &rawTradable)
+	if errTradable != nil {
+		return errTradable
+	}
+
+	var tradable bool
+	if rawTradable.Tradable == 1 {
+		tradable = true
+	} else if rawComodity.Comodity == 0 {
+		tradable = false
+	} else {
+		return errors.New("invalid value from steam response")
+	}
+
+	var actual EconItemDesc
+	errActual := json.Unmarshal(bytes, &actual)
+	if errActual != nil {
+		return errActual
+	}
+
+	e = &actual
+	e.Comodity = comodity
+	e.Tradable = tradable
+
+	return nil
 }
 
 type TradeOffer struct {
