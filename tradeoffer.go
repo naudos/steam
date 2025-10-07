@@ -103,6 +103,25 @@ type ItemDescComodityOnly struct {
 type EconItemDesc struct {
 	ClassID         uint64        `json:"classid,string"`    // for matching with EconItem
 	InstanceID      uint64        `json:"instanceid,string"` // for matching with EconItem
+	Tradable        bool          `json:"tradeable"`
+	BackgroundColor string        `json:"background_color"`
+	IconURL         string        `json:"icon_url"`
+	IconLargeURL    string        `json:"icon_url_large"`
+	IconDragURL     string        `json:"icon_drag_url"`
+	Name            string        `json:"name"`
+	NameColor       string        `json:"name_color"`
+	MarketName      string        `json:"market_name"`
+	MarketHashName  string        `json:"market_hash_name"`
+	MarketFeeApp    uint32        `json:"market_fee_app"`
+	Comodity        bool          `json:"comodity"`
+	Actions         []*EconAction `json:"actions"`
+	Tags            []*EconTag    `json:"tags"`
+	Descriptions    []*EconDesc   `json:"descriptions"`
+}
+
+type RawEconItemDesc struct {
+	ClassID         uint64        `json:"classid,string"`    // for matching with EconItem
+	InstanceID      uint64        `json:"instanceid,string"` // for matching with EconItem
 	Tradable        bool          `json:"-"`
 	BackgroundColor string        `json:"background_color"`
 	IconURL         string        `json:"icon_url"`
@@ -150,15 +169,30 @@ func (e *EconItemDesc) UnmarshalJSON(bytes []byte) error {
 		return errors.New("invalid value from steam response")
 	}
 
-	var actual EconItemDesc
+	var actual RawEconItemDesc
 	errActual := json.Unmarshal(bytes, &actual)
 	if errActual != nil {
 		return errActual
 	}
 
-	e = &actual
-	e.Comodity = comodity
-	e.Tradable = tradable
+	e = &EconItemDesc{
+		Comodity:        comodity,
+		Tradable:        tradable,
+		ClassID:         actual.ClassID,
+		InstanceID:      actual.InstanceID,
+		BackgroundColor: actual.BackgroundColor,
+		IconURL:         actual.IconURL,
+		IconLargeURL:    actual.IconLargeURL,
+		IconDragURL:     actual.IconDragURL,
+		Name:            actual.Name,
+		NameColor:       actual.NameColor,
+		MarketName:      actual.MarketName,
+		MarketHashName:  actual.MarketHashName,
+		MarketFeeApp:    actual.MarketFeeApp,
+		Actions:         actual.Actions,
+		Tags:            actual.Tags,
+		Descriptions:    actual.Descriptions,
+	}
 
 	return nil
 }
